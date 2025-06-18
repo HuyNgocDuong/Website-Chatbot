@@ -1,5 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .App {
-  text-align: center;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Remove any default margins/padding from body */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .App-logo {
