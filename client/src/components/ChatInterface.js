@@ -146,7 +146,7 @@ const ChatInterface = () => {
         <div className="max-w-4xl mx-auto p-4">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-blue-600 text-lg font-semibold">E</span>
+              <span className="text-purple-600 text-lg font-semibold">E</span>
             </div>
             <div>
               <h1 className="font-semibold text-gray-800">Emily</h1>
@@ -172,7 +172,7 @@ const ChatInterface = () => {
                 }`}
               >
                 {message.sender === 'agent' && (
-                  <div className="font-medium text-blue-600 mb-1">
+                  <div className="font-medium text-purple-600 mb-1">
                     {message.name}
                   </div>
                 )}
@@ -213,7 +213,7 @@ const ChatInterface = () => {
             />
             <button
               type="submit"
-              className="bg-blue-500 text-white rounded-full px-6 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2"
+              className="bg-purple-500 text-white rounded-full px-6 py-2 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2"
             >
               <span>Send</span>
               <FontAwesomeIcon icon={faPaperPlane} className="text-white" />
