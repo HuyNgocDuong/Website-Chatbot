@@ -8,6 +8,7 @@ import {
   faPhone,
   faPaperPlane
 } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
 
 const QuickSelectionBox = ({ icon, text, onClick, iconColor, link }) => (
   <button
@@ -31,7 +32,16 @@ const ChatInterface = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [showQuickSelections, setShowQuickSelections] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   const messagesEndRef = useRef(null);
+
+  // Generate session ID on component mount
+  useEffect(() => {
+    if (!sessionId) {
+      setSessionId(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    }
+  }, [sessionId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,7 +79,24 @@ const ChatInterface = () => {
     }
   ];
 
-  const handleQuickSelection = (selection) => {
+  const sendMessageToAPI = async (message) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post('/api/chat', {
+        message: message,
+        sessionId: sessionId
+      });
+      
+      return response.data.response;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      return "I apologize, but I'm having trouble connecting to the server right now. Please try again later.";
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickSelection = async (selection) => {
     if (selection.link) return;
 
     const newMessage = {
@@ -81,40 +108,22 @@ const ChatInterface = () => {
     setMessages([...messages, newMessage]);
     setShowQuickSelections(false);
     
-    // Simulate agent response
-    setTimeout(() => {
-      let response = '';
-      switch(selection.text) {
-        case 'Visit our news':
-          response = "I'll direct you to our news page where you can find the latest updates and information about UrbanHaven.";
-          break;
-        case 'Pricing':
-          response = "I can help you with pricing information! Our properties range from:\n• Apartments: Starting from $150,000\n• Houses: Starting from $250,000\n• Luxury Villas: Starting from $500,000\n\nWould you like to know about specific properties or financing options?";
-          break;
-        case 'About UrbanHaven':
-          response = "UrbanHaven is your premier real estate partner! We offer:\n• Extensive property portfolio\n• Expert real estate agents\n• Flexible financing options\n• Virtual property tours\n• 24/7 customer support\n\nWhat specific aspect would you like to know more about?";
-          break;
-        case 'Contact Us':
-          response = "I'll help you get in touch with our team! Please provide:\n• Your preferred contact method (phone/email)\n• Best time to reach you\n• Type of property you're interested in\n• Any specific questions you have\n\nOur agents typically respond within 2 hours during business hours.";
-          break;
-        default:
-          response = "How can I assist you further with your real estate needs?";
-      }
-
-      const agentResponse = {
-        id: messages.length + 2,
-        sender: 'agent',
-        name: 'Emily',
-        role: 'AI Agent',
-        content: response
-      };
-      setMessages(prev => [...prev, agentResponse]);
-    }, 1000);
+    // Get AI response from backend
+    const aiResponse = await sendMessageToAPI(selection.query);
+    
+    const agentResponse = {
+      id: messages.length + 2,
+      sender: 'agent',
+      name: 'Emily',
+      role: 'AI Agent',
+      content: aiResponse
+    };
+    setMessages(prev => [...prev, agentResponse]);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isLoading) return;
 
     const newMessage = {
       id: messages.length + 1,
@@ -126,17 +135,17 @@ const ChatInterface = () => {
     setInputMessage('');
     setShowQuickSelections(false);
     
-    // Simulate agent response
-    setTimeout(() => {
-      const agentResponse = {
-        id: messages.length + 2,
-        sender: 'agent',
-        name: 'Emily',
-        role: 'AI Agent',
-        content: "I understand. Let me help you with that. Could you please provide more specific details about what you're looking for?"
-      };
-      setMessages(prev => [...prev, agentResponse]);
-    }, 1000);
+    // Get AI response from backend
+    const aiResponse = await sendMessageToAPI(inputMessage);
+    
+    const agentResponse = {
+      id: messages.length + 2,
+      sender: 'agent',
+      name: 'Emily',
+      role: 'AI Agent',
+      content: aiResponse
+    };
+    setMessages(prev => [...prev, agentResponse]);
   };
 
   return (
@@ -180,6 +189,21 @@ const ChatInterface = () => {
               </div>
             </div>
           ))}
+          
+          {/* Loading indicator */}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-gray-100 text-gray-800 max-w-sm rounded-2xl p-4">
+                <div className="font-medium text-purple-600 mb-1">Emily</div>
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {showQuickSelections && (
             <div className="my-4">
               <div className="flex flex-wrap gap-2">
@@ -209,13 +233,15 @@ const ChatInterface = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-blue-500"
+              disabled={isLoading}
+              className="flex-1 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
             />
             <button
               type="submit"
-              className="bg-purple-500 text-white rounded-full px-6 py-2 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2"
+              disabled={isLoading || !inputMessage.trim()}
+              className="bg-purple-500 text-white rounded-full px-6 py-2 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              <span>Send</span>
+              <span>{isLoading ? 'Sending...' : 'Send'}</span>
               <FontAwesomeIcon icon={faPaperPlane} className="text-white" />
             </button>
           </form>
