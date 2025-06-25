@@ -7,7 +7,12 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["chatbot", "real-estate", "ai", "express"],
+  "keywords": [
+    "chatbot",
+    "real-estate",
+    "ai",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Backend server for UrbanHaven real estate chatbot",
@@ -15,6 +20,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "mongodb": "^6.17.0",
     "mongoose": "^8.16.0",
     "nodemailer": "^7.0.3",
     "openai": "^5.5.1"
